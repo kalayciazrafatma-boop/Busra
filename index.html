@@ -6,7 +6,6 @@
     <title>Doğum Günün Kutlu Olsun</title>
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Pacifico&family=Poppins:wght@300;600&display=swap" rel="stylesheet">
     <style>
-        /* --- GENEL AYARLAR --- */
         body {
             background: #000;
             margin: 0;
@@ -21,7 +20,6 @@
             box-sizing: border-box;
         }
 
-        /* --- ARKA PLAN (HAVAİ FİŞEK) --- */
         canvas {
             display: block;
             position: absolute;
@@ -30,7 +28,6 @@
             z-index: 0;
         }
 
-        /* --- ÖN PLAN (YAZILAR) --- */
         .message-container {
             position: relative;
             z-index: 10;
@@ -68,7 +65,6 @@
             animation: textSlideDown 1s 2s ease-out forwards;
         }
 
-        /* --- PASTA VE TABAK --- */
         .cake-wrapper {
             position: relative;
             z-index: 10;
@@ -109,58 +105,61 @@
             z-index: 1;
         }
 
-        /* --- 26 MUM KONTEYNIRI --- */
         .candle-container {
             display: flex;
             justify-content: center;
             align-items: flex-end;
-            gap: 15px; /* Mumlar arası boşluk eklendi */
+            gap: 4px; /* 26 mumun sığması için boşluk daraltıldı */
             position: absolute;
-            /* top: -45px; - Bu satırı kaldırıp yerine bottom ekleyeceğiz */
+            top: -45px; /* Pastanın tam üstüne sabitlendi */
+            left: 0;
+            width: 100%;
+            height: 45px;
             z-index: 2;
-            width: 80%; /* Pastanın üzerine ortalamak için daraltıldı */
-            
-            /* GÜNCELLENEN KONUMLANDIRMA */
-            height: 45px; /* mumların görsel yüksekliği kadar yükseklik */
-            bottom: 130px; /* pastanın tam üstüne yerleştir (130px yüksekliğindeki pastanın bottom'ından 130px yukarı) */
-            left: 10%; /* pastaya göre ortala */
         }
 
         .candle {
             background: linear-gradient(to bottom, #fd79a8, #e84393);
             border-radius: 3px;
-            width: 12px; /* 26 mum için daha dolgun görünüm */
+            width: 8px; /* Mumlar sığsın diye inceltildi */
             height: 45px;
             position: relative;
-            transform: translateY(-800px);
-            animation: dropIn 0.8s ease-out forwards;
+            opacity: 0;
+            transform: translateY(-200px);
+            animation: dropIn 0.5s ease-out forwards;
         }
 
-        /* GÜNCELLENEN ALEV STİLİ */
         .fire {
             position: absolute;
-            top: -25px; /* alev daha büyük olduğu için daha yukarıda konumlandırıldı */
+            top: -16px;
             left: 50%;
-            transform: translateX(-50%);
-            width: 15px; /* alev boyutu artırıldı */
-            height: 25px; /* alev boyutu artırıldı */
-            background: #ffb74d; /* daha belirgin, parlak turuncu-sarı alev rengi */
+            transform: translateX(-50%) scale(0);
+            width: 8px;
+            height: 14px;
+            background: #ffb74d;
             border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
-            animation: flicker 0.2s infinite alternate;
-            box-shadow: 0 0 15px #ffb74d, 0 0 30px #ffa726; /* güçlü, sıcak bir ışıltı eklendi */
+            box-shadow: 0 0 10px #ffb74d, 0 0 20px #ffa726;
+            opacity: 0;
+            animation: ignite 0.3s ease-out forwards, flicker 0.2s infinite alternate;
         }
 
-        /* Animasyonlar */
-        @keyframes dropIn { to { transform: translateY(0); } }
-        @keyframes textSlideDown { 
-            from { opacity: 0; transform: translateY(-30px); } 
-            to { opacity: 1; transform: translateY(0); } 
+        @keyframes dropIn { 
+            to { transform: translateY(0); opacity: 1; } 
         }
+        
+        @keyframes ignite {
+            to { opacity: 1; transform: translateX(-50%) scale(1); }
+        }
+
         @keyframes flicker {
             from { transform: translateX(-50%) scale(1); opacity: 0.9; }
             to { transform: translateX(-50%) scale(1.15); opacity: 1; }
         }
-
+        
+        @keyframes textSlideDown { 
+            from { opacity: 0; transform: translateY(-30px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
     </style>
 </head>
 <body>
@@ -176,35 +175,32 @@
     <div class="cake-wrapper">
         <div class="cake">
             <div class="icing"></div>
-            <div id="candles" class="candle-container">
-                </div>
+            <div id="candles" class="candle-container"></div>
         </div>
         <div class="plate"></div>
     </div>
 
     <script>
-        // --- 26 ADET MUMU OTOMATİK EKLEME ---
         const candleBox = document.getElementById('candles');
-        const candleCount = 26; // Sayı 26 olarak değiştirildi
+        const candleCount = 26;
 
         for (let i = 0; i < candleCount; i++) {
             const candle = document.createElement('div');
             candle.className = 'candle';
-            candle.style.animationDelay = (i * 0.1) + 's'; // Düşme animasyonu süresi biraz yavaşlatıldı
+            
+            const dropDelay = i * 0.05; 
+            candle.style.animationDelay = dropDelay + 's';
 
             const fire = document.createElement('div');
             fire.className = 'fire';
+            fire.style.animationDelay = (dropDelay + 0.4) + 's'; 
 
             candle.appendChild(fire);
             candleBox.appendChild(candle);
         }
 
-        // --- HAVAİ FİŞEK KODLARI ---
         window.requestAnimFrame = (function(){
-          return window.requestAnimationFrame || 
-                 window.webkitRequestAnimationFrame || 
-                 window.mozRequestAnimationFrame || 
-                 function( callback ){ window.setTimeout(callback, 1000 / 60); };
+          return window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || function( callback ){ window.setTimeout(callback, 1000 / 60); };
         })();
 
         var canvas = document.getElementById( 'canvas' ),
