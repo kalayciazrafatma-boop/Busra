@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doğum Günün Kutlu Olsun</title>
+    <!-- Google Fonts: Şık yazı tipleri eklendi -->
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Pacifico&family=Poppins:wght@300;600&display=swap" rel="stylesheet">
+    <style>
+        /* --- GENEL AYARLAR --- */
+        body {
+            background: #000;
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            height: 100vh;
+            padding: 40px 0;
+            box-sizing: border-box;
+        }
+
+        /* --- ARKA PLAN (HAVAİ FİŞEK) --- */
+        canvas {
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 0;
+        }
+
+        /* --- ÖN PLAN (YAZILAR) --- */
+        .message-container {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            pointer-events: none;
+        }
+
+        .message-title {
+            font-family: 'Dancing Script', cursive;
+            font-size: 45px;
+            color: #fff;
+            text-shadow: 0 0 10px #ff00de, 0 0 20px #ff00de, 0 0 30px #ff00de;
+            opacity: 0;
+            animation: textSlideDown 1s 0.5s ease-out forwards;
+        }
+
+        .message-name {
+            font-family: 'Pacifico', cursive;
+            font-size: 65px;
+            color: #ffeaa7;
+            margin-top: 10px;
+            text-shadow: 0 0 15px #e17055, 0 0 30px #e17055;
+            opacity: 0;
+            animation: textSlideDown 1s 1.2s ease-out forwards;
+        }
+
+        .message-note {
+            font-family: 'Poppins', sans-serif;
+            font-size: 22px;
+            color: #ffffff;
+            font-weight: 300;
+            margin-top: 15px;
+            letter-spacing: 2px;
+            opacity: 0;
+            animation: textSlideDown 1s 2s ease-out forwards;
+        }
+
+        /* --- PASTA VE TABAK --- */
+        .cake-wrapper {
+            position: relative;
+            z-index: 10;
+            margin-bottom: 30px;
+        }
+
+        .plate {
+            width: 380px;
+            height: 15px;
+            background: #dfe6e9;
+            border-radius: 10px;
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            box-shadow: 0 5px 25px rgba(255,255,255,0.1);
+        }
+
+        .cake {
+            width: 340px;
+            height: 130px;
+            background: #6c5ce7;
+            position: relative;
+            border-radius: 15px 15px 5px 5px;
+            display: flex;
+            justify-content: center;
+            box-shadow: inset -15px 0 rgba(0,0,0,0.2);
+        }
+
+        .icing {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 45px;
+            background: #a29bfe;
+            border-radius: 15px 15px 40px 40px;
+            z-index: 1;
+        }
+
+        /* --- 26 MUM KONTEYNIRI --- */
+        .candle-container {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            gap: 15px; /* Mumlar arası boşluk eklendi */
+            position: absolute;
+            top: -45px;
+            z-index: 2;
+            width: 80%; /* Pastanın üzerine ortalamak için daraltıldı */
+        }
+
+        .candle {
+            background: linear-gradient(to bottom, #fd79a8, #e84393);
+            border-radius: 3px;
+            width: 12px; /* 26 mum için daha dolgun görünüm */
+            height: 45px;
+            position: relative;
+            transform: translateY(-800px);
+            animation: dropIn 0.8s ease-out forwards;
+        }
+
+        .fire {
+            position: absolute;
+            top: -14px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 8px;
+            height: 14px;
+            background: #ff7675;
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            animation: flicker 0.2s infinite alternate;
+            box-shadow: 0 0 10px #ff7675;
+        }
+
+        /* Animasyonlar */
+        @keyframes dropIn { to { transform: translateY(0); } }
+        @keyframes textSlideDown { 
+            from { opacity: 0; transform: translateY(-30px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
+        @keyframes flicker {
+            from { transform: translateX(-50%) scale(1); opacity: 0.9; }
+            to { transform: translateX(-50%) scale(1.15); opacity: 1; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Arka Plan Havai Fişek -->
+    <canvas id="canvas"></canvas>
+
+    <!-- Yazı Alanı -->
+    <div class="message-container">
+        <div class="message-title">Doğum Günün Kutlu Olsun</div>
+        <div class="message-name">Büşra Ablacığım İyi ki Doğmuşsun</div>
+        <div class="message-note">Seni Çoooook Seviyorummmmm</div>
+    </div>
+
+    <!-- Pasta Alanı -->
+    <div class="cake-wrapper">
+        <div class="cake">
+            <div class="icing"></div>
+            <div id="candles" class="candle-container">
+                <!-- Mumlar JS ile buraya gelecek -->
+            </div>
+        </div>
+        <div class="plate"></div>
+    </div>
+
+    <script>
+        // --- 26 ADET MUMU OTOMATİK EKLEME ---
+        const candleBox = document.getElementById('candles');
+        const candleCount = 26; // Sayı 26 olarak değiştirildi
+
+        for (let i = 0; i < candleCount; i++) {
+            const candle = document.createElement('div');
+            candle.className = 'candle';
+            candle.style.animationDelay = (i * 0.1) + 's'; // Düşme animasyonu süresi biraz yavaşlatıldı
+            
+            const fire = document.createElement('div');
+            fire.className = 'fire';
+            
+            candle.appendChild(fire);
+            candleBox.appendChild(candle);
+        }
+
+        // --- HAVAİ FİŞEK KODLARI ---
+        window.requestAnimFrame = (function(){
+          return window.requestAnimationFrame || 
+                 window.webkitRequestAnimationFrame || 
+                 window.mozRequestAnimationFrame || 
+                 function( callback ){ window.setTimeout(callback, 1000 / 60); };
+        })();
+
+        var canvas = document.getElementById( 'canvas' ),
+            ctx = canvas.getContext( '2d' ),
+            cw = window.innerWidth,
+            ch = window.innerHeight,
+            fireworks = [],
+            particles = [],
+            hue = 120,
+            timerTotal = 25, 
+            timerTick = 0;
+            
+        canvas.width = cw;
+        canvas.height = ch;
+
+        function random( min, max ) { return Math.random() * ( max - min ) + min; }
+
+        function Firework( sx, sy, tx, ty ) {
+            this.x = sx; this.y = sy; this.sx = sx; this.sy = sy;
+            this.tx = tx; this.ty = ty;
+            this.distanceToTarget = Math.sqrt(Math.pow(sx - tx, 2) + Math.pow(sy - ty, 2));
+            this.distanceTraveled = 0;
+            this.coordinates = [];
+            this.coordinateCount = 3;
+            while( this.coordinateCount-- ) { this.coordinates.push( [ this.x, this.y ] ); }
+            this.angle = Math.atan2( ty - sy, tx - sx );
+            this.speed = 2;
+            this.acceleration = 1.05;
+            this.brightness = random( 50, 70 );
+        }
+
+        Firework.prototype.update = function( index ) {
+            this.coordinates.pop();
+            this.coordinates.unshift( [ this.x, this.y ] );
+            this.speed *= this.acceleration;
+            var vx = Math.cos( this.angle ) * this.speed, vy = Math.sin( this.angle ) * this.speed;
+            this.distanceTraveled = Math.sqrt(Math.pow(this.sx - (this.x + vx), 2) + Math.pow(this.sy - (this.y + vy), 2));
+            if( this.distanceTraveled >= this.distanceToTarget ) {
+                createParticles( this.tx, this.ty );
+                fireworks.splice( index, 1 );
+            } else { this.x += vx; this.y += vy; }
+        }
+
+        Firework.prototype.draw = function() {
+            ctx.beginPath();
+            ctx.moveTo( this.coordinates[ this.coordinates.length - 1 ][ 0 ], this.coordinates[ this.coordinates.length - 1 ][ 1 ] );
+            ctx.lineTo( this.x, this.y );
+            ctx.strokeStyle = 'hsl(' + hue + ', 100%, ' + this.brightness + '%)';
+            ctx.stroke();
+        }
+
+        function Particle( x, y ) {
+            this.x = x; this.y = y;
+            this.coordinates = [];
+            this.coordinateCount = 5;
+            while( this.coordinateCount-- ) { this.coordinates.push( [ this.x, this.y ] ); }
+            this.angle = random( 0, Math.PI * 2 );
+            this.speed = random( 1, 10 );
+            this.friction = 0.95;
+            this.gravity = 1;
+            this.hue = random( hue - 50, hue + 50 );
+            this.alpha = 1;
+            this.decay = random( 0.015, 0.03 );
+        }
+
+        Particle.prototype.update = function( index ) {
+            this.coordinates.pop();
+            this.coordinates.unshift( [ this.x, this.y ] );
+            this.speed *= this.friction;
+            this.x += Math.cos( this.angle ) * this.speed;
+            this.y += Math.sin( this.angle ) * this.speed + this.gravity;
+            this.alpha -= this.decay;
+            if( this.alpha <= this.decay ) { particles.splice( index, 1 ); }
+        }
+
+        Particle.prototype.draw = function() {
+            ctx.beginPath();
+            ctx.moveTo( this.coordinates[ this.coordinates.length - 1 ][ 0 ], this.coordinates[ this.coordinates.length - 1 ][ 1 ] );
+            ctx.lineTo( this.x, this.y );
+            ctx.strokeStyle = 'hsla(' + this.hue + ', 100%, 50%, ' + this.alpha + ')';
+            ctx.stroke();
+        }
+
+        function createParticles( x, y ) {
+            var particleCount = 30; 
+            while( particleCount-- ) { particles.push( new Particle( x, y ) ); }
+        }
+
+        function loop() {
+            requestAnimFrame( loop );
+            hue += 0.5;
+            ctx.globalCompositeOperation = 'destination-out';
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.5)'; 
+            ctx.fillRect( 0, 0, cw, ch );
+            ctx.globalCompositeOperation = 'lighter';
+            
+            var i = fireworks.length;
+            while( i-- ) { fireworks[ i ].draw(); fireworks[ i ].update( i ); }
+            
+            var i = particles.length;
+            while( i-- ) { particles[ i ].draw(); particles[ i ].update( i ); }
+
+            if( timerTick >= timerTotal ) {
+                fireworks.push( new Firework( cw / 2, ch, random( 0, cw ), random( 0, ch / 2 ) ) );
+                timerTick = 0;
+            } else { timerTick++; }
+        }
+
+        window.addEventListener('resize', function() {
+            cw = window.innerWidth; ch = window.innerHeight;
+            canvas.width = cw; canvas.height = ch;
+        });
+
+        loop();
+    </script>
+</body>
+</html>
